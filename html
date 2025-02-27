@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Аниме картинки и музыка</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white p-6">
+    <div class="max-w-3xl mx-auto text-center">
+        <h1 class="text-3xl font-bold mb-4">Скачивай аниме-картинки и слушай музыку!</h1>
+        
+        <h2 class="text-2xl font-semibold mt-6">Аниме картинка</h2>
+        <div class="mt-4">
+            <a id="image" href="#" download>
+                <img id="img" src="#" alt="Аниме картинка" class="w-64 h-auto mx-auto rounded-lg shadow-md">
+            </a>
+        </div>
+        <div class="mt-4">
+            <button onclick="changeImage()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Сменить картинку</button>
+        </div>
+        
+        <h2 class="text-2xl font-semibold mt-6">Музыка</h2>
+        <div class="mt-4">
+            <input id="music-url" type="text" placeholder="Вставьте ссылку на трек с Spotify или Яндекс Музыки" class="w-full p-2 text-black rounded mb-4">
+            <button onclick="playMusic()" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-2">Слушать</button>
+            
+            <div id="music-player" class="mt-4 hidden"></div>
+        </div>
+        
+        <h2 class="text-2xl font-semibold mt-6">Видео с YouTube</h2>
+        <div class="mt-4">
+            <input id="youtube-url" type="text" placeholder="Вставьте ссылку на видео с YouTube" class="w-full p-2 text-black rounded mb-4">
+            <button onclick="playYoutubeVideo()" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mt-2">Смотреть видео</button>
+            
+            <div id="youtube-player" class="mt-4 hidden">
+                <iframe id="youtube-iframe" width="100%" height="380" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+        </div>
+        
+        <h2 class="text-2xl font-semibold mt-6">Создать плейлист</h2>
+        <div class="mt-4">
+            <textarea id="playlist-input" rows="4" class="w-full p-2 text-black rounded" placeholder="Введите ссылки на несколько треков, разделенные новой строкой или запятой."></textarea>
+            <button onclick="createPlaylist()" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded mt-2">Создать плейлист</button>
+        </div>
+        
+        <div id="playlist" class="mt-6 hidden">
+            <h3 class="text-xl font-semibold">Ваш плейлист:</h3>
+            <div id="playlist-tracks"></div>
+        </div>
+    </div>
+    
+    <script>
+        // Функция для прослушивания музыки с Spotify или Яндекс Музыки
+        function playMusic() {
+            const url = document.getElementById("music-url").value;
+            
+            // Проверяем, является ли ссылка ссылкой на Spotify
+            if (url.includes("spotify.com")) {
+                const embedUrl = url.replace("spotify.com/", "spotify.com/embed/");
+                document.getElementById("music-player").innerHTML = `<iframe src="${embedUrl}" width="100%" height="380" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>`;
+                document.getElementById("music-player").classList.remove("hidden");
+            } 
+            // Проверяем, является ли ссылка ссылкой на Яндекс Музыку
+            else if (url.includes("music.yandex.ru")) {
+                const embedUrl = url.replace("music.yandex.ru", "music.yandex.ru/iframe");
+                document.getElementById("music-player").innerHTML = `<iframe src="${embedUrl}" width="100%" height="380" frameborder="0" allow="encrypted-media"></iframe>`;
+                document.getElementById("music-player").classList.remove("hidden");
+            } else {
+                alert("Введите корректную ссылку на Spotify или Яндекс Музыку!");
+            }
+        }
+
+        // Функция для создания плейлиста
+        function createPlaylist() {
+            const playlistInput = document.getElementById("playlist-input").value;
+            const urls = playlistInput.split(/\n|,/).map(url => url.trim()).filter(url => url.length > 0);
+            
+            if (urls.length > 0) {
+                const playlistContainer = document.getElementById("playlist-tracks");
+                playlistContainer.innerHTML = '';  // Очистить предыдущий плейлист
+                
+                urls.forEach(url => {
+                    const trackElement = document.createElement('div');
+                    trackElement.classList.add('mb-4');
+                    
+                    if (url.includes("spotify.com")) {
+                        const embedUrl = url.replace("spotify.com/", "spotify.com/embed/");
+                        trackElement.innerHTML = `<iframe src="${embedUrl}" width="100%" height="380" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>`;
+                    } else if (url.includes("music.yandex.ru")) {
+                        const embedUrl = url.replace("music.yandex.ru", "music.yandex.ru/iframe");
+                        trackElement.innerHTML = `<iframe src="${embedUrl}" width="100%" height="380" frameborder="0" allow="encrypted-media"></iframe>`;
+                    } else {
+                        trackElement.innerHTML = `<p class="text-red-500">Некорректная ссылка: ${url}</p>`;
+                    }
+                    
+                    playlistContainer.appendChild(trackElement);
+                });
+                
+                document.getElementById("playlist").classList.remove("hidden");
+            } else {
+                alert("Введите хотя бы одну ссылку на трек!");
+            }
+        }
+
+        // Функция для просмотра видео с YouTube
+        function playYoutubeVideo() {
+            const youtubeUrl = document.getElementById("youtube-url").value;
+            
+            // Извлекаем ID видео из URL
+            const videoId = extractYoutubeVideoId(youtubeUrl);
+            if (videoId) {
+                const embedUrl = `https://www.youtube.com/embed/${videoId}`;
+                document.getElementById("youtube-iframe").src = embedUrl;
+                document.getElementById("youtube-player").classList.remove("hidden");
+            } else {
+                alert("Введите корректную ссылку на видео с YouTube!");
+            }
+        }
+
+        // Функция для извлечения ID видео из URL YouTube
+        function extractYoutubeVideoId(url) {
+            const regex = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+            const match = url.match(regex);
+            return match ? match[1] : null;
+        }
+
+        function changeImage() {
+            const newImage = getRandomAnimeImage();
+            document.getElementById("img").src = newImage;
+            document.getElementById("image").href = newImage;
+        }
+
+        function getRandomAnimeImage() {
+            const sources = [
+                'https://source.unsplash.com/featured/?anime',
+                'https://picsum.photos/400/300?random=' + Math.floor(Math.random() * 1000),
+                'https://www.thiswaifudoesnotexist.net/example-' + Math.floor(Math.random() * 10000) + '.jpg'
+            ];
+            return sources[Math.floor(Math.random() * sources.length)];
+        }
+
+        changeImage();  // Изначально показываем случайную картинку
+    </script>
+</body>
+</html>
